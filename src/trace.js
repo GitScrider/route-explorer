@@ -1,102 +1,99 @@
 class Trace {
-   records = {};
+  records = {};
 
-   constructor(trace) {
-      this.records = this.readRecords(trace);
-   }
+  constructor(trace) {
+    this.records = this.readRecords(trace);
+  }
 
-   readRecords(trace) {
-      const records = {};
+  readRecords(trace) {
+    const records = {};
 
-      for (let record of trace) {
-         if (!(record.name in records)) records[record.name] = [];
-         if (record.name === "next_hops") {
-            console.log(record.data.ip);
-         }
-         records[record.name].push(record.data);
+    for (let record of trace) {
+      if (!(record.name in records)) records[record.name] = [];
+      records[record.name].push(record.data);
+    }
+
+    const rec = (x, i) => x in records && (i ? records[x][0] : records[x]);
+
+    return {
+      header: rec("header", true),
+      parisTraceroute: rec("paris_traceroute", true),
+      stats: rec("stats", true),
+      hostnames: rec("hostnames", true),
+      asns: rec("asns", true),
+      fixedAsns: rec("fixed_asns", true),
+      nextHops: rec("next_hops"),
+      nodeControl: rec("node_control"),
+      classify: rec("classify"),
+    };
+  }
+
+  ip2asn() {
+    const asns = this.asns;
+    const ip2asn = {};
+
+    for (const nh of this.nextHops) {
+      const src = nh["ip"];
+      if (!(src in ip2asn)) ip2asn[src] = src in asns ? asns[src] : "";
+
+      for (const dst of nh["next_hops"]) {
+        if (!(dst in ip2asn)) ip2asn[dst] = dst in asns ? asns[dst] : "";
       }
+    }
 
-      const rec = (x, i) => x in records && (i ? records[x][0] : records[x]);
+    return ip2asn;
+  }
 
-      return {
-         header: rec("header", true),
-         parisTraceroute: rec("paris_traceroute", true),
-         stats: rec("stats", true),
-         hostnames: rec("hostnames", true),
-         asns: rec("asns", true),
-         fixedAsns: rec("fixed_asns", true),
-         nextHops: rec("next_hops"),
-         nodeControl: rec("node_control"),
-         classify: rec("classify"),
-      };
-   }
+  graph() {
+    const graph = {};
+    for (const nh of this.nextHops) graph[nh["ip"]] = nh["next_hops"];
 
-   ip2asn() {
-      const asns = this.asns;
-      const ip2asn = {};
+    return graph;
+  }
 
-      for (const nh of this.nextHops) {
-         const src = nh["ip"];
-         if (!(src in ip2asn)) ip2asn[src] = src in asns ? asns[src] : "";
+  get totalTime() {
+    const finishTime = this.stats["finish_time"] / 1000;
+    const initTime = this.stats["init_time"] / 1000;
+    return finishTime - initTime;
+  }
 
-         for (const dst of nh["next_hops"]) {
-            if (!(dst in ip2asn)) ip2asn[dst] = dst in asns ? asns[dst] : "";
-         }
-      }
+  get truePPS() {
+    return this.stats["sent_packets"] / this.totalTime;
+  }
 
-      return ip2asn;
-   }
+  get header() {
+    return this.records.header;
+  }
 
-   graph() {
-      const graph = {};
-      for (const nh of this.nextHops) graph[nh["ip"]] = nh["next_hops"];
+  get parisTraceroute() {
+    return this.records.parisTraceroute;
+  }
 
-      return graph;
-   }
+  get stats() {
+    return this.records.stats;
+  }
 
-   get totalTime() {
-      const finishTime = this.stats["finish_time"] / 1000;
-      const initTime = this.stats["init_time"] / 1000;
-      return finishTime - initTime;
-   }
+  get hostnames() {
+    return this.records.hostnames;
+  }
 
-   get truePPS() {
-      return this.stats["sent_packets"] / this.totalTime;
-   }
+  get asns() {
+    return this.records.asns;
+  }
 
-   get header() {
-      return this.records.header;
-   }
+  get fixedAsns() {
+    return this.records.fixedAsns;
+  }
 
-   get parisTraceroute() {
-      return this.records.parisTraceroute;
-   }
+  get nextHops() {
+    return this.records.nextHops;
+  }
 
-   get stats() {
-      return this.records.stats;
-   }
+  get nodeControl() {
+    return this.records.nodeControl;
+  }
 
-   get hostnames() {
-      return this.records.hostnames;
-   }
-
-   get asns() {
-      return this.records.asns;
-   }
-
-   get fixedAsns() {
-      return this.records.fixedAsns;
-   }
-
-   get nextHops() {
-      return this.records.nextHops;
-   }
-
-   get nodeControl() {
-      return this.records.nodeControl;
-   }
-
-   get classify() {
-      return this.records.classify;
-   }
+  get classify() {
+    return this.records.classify;
+  }
 }

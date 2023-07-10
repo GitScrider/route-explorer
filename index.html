@@ -1,37 +1,62 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8">
-	<title>Route Explorer</title>
-	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:400,700">
-	<link rel="stylesheet" type="text/css" href="vendor/normalize-8.0.1.css">
-	<link rel="stylesheet" type="text/css" href="src/re.css">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Route Explorer</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://fonts.googleapis.com/css?family=Roboto:400,700"
+    />
+    <link rel="stylesheet" type="text/css" href="vendor/normalize-8.0.1.css" />
+    <link rel="stylesheet" type="text/css" href="src/re.css" />
+  </head>
+  <body>
+    <div id="re">
+      <div id="hud"></div>
+      <div id="route"></div>
+      <div id="version"></div>
+    </div>
 
-<div id="re">
-	<div id="hud"></div>
-	<div id="route"></div>
-	<div id="version"></div>
-</div>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modal-title" class="modal-title"></h2>
+        <div id="modal-description"></div>
+      </div>
+    </div>
 
-<script type="text/javascript" src="vendor/cytoscape-3.8.0.min.js"></script>
-<script type="text/javascript" src="vendor/dagre-0.7.3.min.js"></script>
-<script type="text/javascript" src="vendor/cytoscape-dagre-2.2.2.min.js"></script>
-<script type="text/javascript" src="vendor/jquery-3.4.1.min.js"></script>
-<script type="text/javascript" src="src/util.js"></script>
-<script type="text/javascript" src="src/trace.js"></script>
-<script type="text/javascript" src="src/re.js"></script>
+    <script type="text/javascript" src="vendor/cytoscape-3.8.0.min.js"></script>
+    <script type="text/javascript" src="vendor/dagre-0.7.3.min.js"></script>
+    <script
+      type="text/javascript"
+      src="vendor/cytoscape-dagre-2.2.2.min.js"
+    ></script>
+    <script type="text/javascript" src="vendor/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="src/util.js"></script>
+    <script type="text/javascript" src="src/trace.js"></script>
+    <script type="text/javascript" src="src/re.js"></script>
 
-<script type="text/javascript">
-    $(document).ready(function(){
-        $.getJSON('data/sin-sg-doc.1534944502.ipv6.2001-559-80a0-0-face-b00c-3333-7020.udp.daddr-tc-fl-dport.mca.json', data => {
-			const re = new RouteExplorer(data);
-            re.render();
+    <script type="text/javascript">
+      $(document).ready(function () {
+        function readJSONFile(path, callback) {
+          return $.getJSON(path, callback);
+        }
+
+        function renderRouteExplorer(data, locations) {
+          const re = new RouteExplorer(data, locations);
+          re.render();
+        }
+
+        $.when(
+          readJSONFile(
+            "data/sin-sg-doc.1534944502.ipv6.2001-559-80a0-0-face-b00c-3333-7020.udp.daddr-tc-fl-dport.mca.json"
+          ),
+          readJSONFile("data/location.json")
+        ).done(function (d1, d2) {
+          renderRouteExplorer(d1[0], d2[0]);
         });
-    });
-	
-</script>
-
-</body>
+      });
+    </script>
+  </body>
 </html>
